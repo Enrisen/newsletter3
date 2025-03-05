@@ -1,26 +1,26 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
 func TestSignupHandler(t *testing.T) {
-	// set up request and response
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	app := &application{
+		logger: logger,
+	}
 	req := httptest.NewRequest("GET", "/home", nil)
 	rr := httptest.NewRecorder()
-	// convert the home  function to a http.Handler type
-	handler := http.HandlerFunc(home)
-	// pass the fake HTTP request to the handler
+	handler := http.HandlerFunc(app.home)
 	handler.ServeHTTP(rr, req)
-	// perform  the assertions
-	//1. check the status code for 200 OK
 	status := rr.Code
 	if status != http.StatusOK {
 		t.Errorf("got %v, expected %v", status, http.StatusOK)
 	}
-	//2. check the response body
 	expected := "this the sign up page"
 	got := rr.Body.String()
 	if got != expected {
