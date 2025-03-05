@@ -1,40 +1,56 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Let's explore Dependency Injection in Go"))
+type application struct {
+	logger *slog.Logger
 }
 
-// Middleware function that wraps an http.Handler
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Log request details
-		ip := r.RemoteAddr
-		proto := r.Proto
-		method := r.Method
-		uri := r.URL.RequestURI()
-		log.Printf("Received request - IP: %s, Protocol: %s, Method: %s, URI: %s", ip, proto, method, uri)
 
+func home(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Let's explore Dependency Injection in Go "))
+}
+
+
+// Middleware function that wraps an http.Handler
+func (app *application)loggingMiddleware(next http.Handler) http.Handler {
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//gather the log values before creating the logger
+		//th Printf() function 
+		//var(
+		//	ip := r.RemoteAddr
+		//	proto := r.Proto
+		//	method := r.Method
+		//	uri := r.URL.RequestURI()
+		//)
+		//pre-processing
+		app.logger.Info("Pre-processing")
 		// Call the next handler
 		next.ServeHTTP(w, r)
-
 		// Post-processing log
-		log.Println("Request processed")
+		app.logger.Info("Post-processing")
 	})
+	return fn
 }
 
 func main() {
 	mux := http.NewServeMux()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	//create a new instance of the application struct
+	app := &application{
+		logger: logger,
+	}
 	mux.HandleFunc("/", home)
 
 	// Correctly wrapping mux with the middleware
-	logMiddleware := loggingMiddleware(mux)
+	logMiddleware := app.loggingMiddleware(mux)
 
-	log.Print("Starting the server on port: 4000")
+	logger.Info("Starting server", "addr", ":4000")
 	err := http.ListenAndServe(":4000", logMiddleware)
-	log.Fatal(err)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
