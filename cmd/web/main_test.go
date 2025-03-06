@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestSignupHandler(t *testing.T) {
+func TestHomeHandler(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	app := &application{
 		logger: logger,
@@ -21,7 +21,7 @@ func TestSignupHandler(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("got %v, expected %v", status, http.StatusOK)
 	}
-	expected := "this the sign up page"
+	expected := "Let's explore Dependency Injection in Go"
 	got := rr.Body.String()
 	if got != expected {
 		t.Errorf("got %v, expected %v", got, expected)
